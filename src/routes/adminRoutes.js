@@ -51,26 +51,25 @@ const {
     updateOfflineCentre,
     deleteOfflineCentre
 } = require('../controllers/adminController');
-const upload = require('../middleware/upload');
-const { uploadS3 } = require('../middleware/videoUpload');
+const { uploadGeneralS3, uploadVideoS3 } = require('../middleware/s3Upload');
 
 router.get('/overview', protectAdmin, getOverviewStats);
 
-// Upload Route
+// Upload Route (S3 - General)
 router.post('/upload', protectAdmin, (req, res, next) => {
-    upload.single('file')(req, res, (err) => {
+    uploadGeneralS3.single('file')(req, res, (err) => {
         if (err) {
-            console.error('Multer/Cloudinary Error:', err);
+            console.error('Multer/S3 Error:', err);
             return res.status(500).json({ success: false, message: err.message });
         }
         if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
-        res.status(200).json({ success: true, url: req.file.path });
+        res.status(200).json({ success: true, url: req.file.location });
     });
 });
 
-// Video Upload Route (S3)
+// Video Upload Route (S3 - Videos)
 router.post('/upload-video', protectAdmin, (req, res, next) => {
-    uploadS3.single('video')(req, res, (err) => {
+    uploadVideoS3.single('video')(req, res, (err) => {
         if (err) {
             console.error('Multer/S3 Error:', err);
             return res.status(500).json({ success: false, message: err.message });

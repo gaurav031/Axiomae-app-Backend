@@ -26,12 +26,12 @@ router.post('/forgotpassword', otpLimiter, validate(schemas.forgotPassword), for
 router.put('/resetpassword', validate(schemas.resetPassword), resetPassword);
 router.get('/me', protect, getMe);
 router.put('/updatedetails', protect, validate(schemas.updateDetails), updateDetails);
-const upload = require('../middleware/upload');
+const { uploadGeneralS3 } = require('../middleware/s3Upload');
 router.post('/upload', protect, (req, res, next) => {
-    upload.single('file')(req, res, (err) => {
+    uploadGeneralS3.single('file')(req, res, (err) => {
         if (err) return res.status(500).json({ success: false, message: err.message });
         if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
-        res.status(200).json({ success: true, url: req.file.path });
+        res.status(200).json({ success: true, url: req.file.location });
     });
 });
 
