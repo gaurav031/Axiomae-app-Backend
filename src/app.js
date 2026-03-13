@@ -5,8 +5,6 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
-const hpp = require('hpp');
 
 const app = express();
 
@@ -16,14 +14,7 @@ app.use(express.json());
 // Set security headers
 app.use(helmet());
 
-// Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
-
-// Data sanitization against XSS
-app.use(xss());
-
-// Prevent http param pollution
-app.use(hpp());
 
 // Rate limiting
 const limiter = rateLimit({
