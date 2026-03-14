@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const sendEmail = require('../utils/sendEmail');
+const logger = require('../utils/logger');
 
 // @desc    Send Registration OTP
 // @route   POST /api/auth/sendotp
@@ -8,6 +9,7 @@ const sendEmail = require('../utils/sendEmail');
 exports.sendRegistrationOTP = async (req, res) => {
     try {
         const { email } = req.body;
+        logger.info({ email }, 'OTP request received');
 
         if (!email) {
             return res.status(400).json({ success: false, message: 'Please provide an email' });
@@ -38,16 +40,21 @@ exports.sendRegistrationOTP = async (req, res) => {
         }
 
         try {
+            logger.info({ email: user.email, otp }, 'Attempting to send verification email');
             await sendEmail({
                 email: user.email,
                 subject: 'Email Verification OTP',
                 message: `Your OTP for registration is: ${otp}. It will expire in 10 minutes.`
             });
 
+            logger.info({ email: user.email }, 'Verification OTP email sent successfully');
             res.status(200).json({ success: true, message: 'OTP sent to email' });
         } catch (err) {
-            console.error('Email Error Stack:', err.stack);
-            console.error('Email Error Message:', err.message);
+            logger.error({ 
+                err, 
+                email: user.email,
+                stack: err.stack 
+            }, 'Failed to send verification email');
             user.verificationOTP = undefined;
             user.verificationOTPExpire = undefined;
             await user.save();
@@ -230,19 +237,24 @@ exports.forgotPassword = async (req, res) => {
         await user.save();
 
         try {
+            logger.info({ email: user.email, otp }, 'Attempting to send password reset email');
             await sendEmail({
                 email: user.email,
                 subject: 'Password Reset OTP',
                 message: `Your OTP for password reset is: ${otp}. It will expire in 10 minutes.`
             });
 
+            logger.info({ email: user.email }, 'Password reset email sent successfully');
             res.status(200).json({
                 success: true,
                 message: 'OTP sent to email'
             });
         } catch (err) {
-            console.error('Email Error Stack:', err.stack);
-            console.error('Email Error Message:', err.message);
+            logger.error({ 
+                err, 
+                email: user.email,
+                stack: err.stack 
+            }, 'Failed to send password reset email');
             user.resetPasswordToken = undefined;
             user.resetPasswordExpire = undefined;
             await user.save();
