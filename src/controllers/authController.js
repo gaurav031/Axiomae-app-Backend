@@ -46,11 +46,17 @@ exports.sendRegistrationOTP = async (req, res) => {
 
             res.status(200).json({ success: true, message: 'OTP sent to email' });
         } catch (err) {
-            console.error('Email Error:', err);
+            console.error('Email Error Stack:', err.stack);
+            console.error('Email Error Message:', err.message);
             user.verificationOTP = undefined;
             user.verificationOTPExpire = undefined;
             await user.save();
-            return res.status(500).json({ success: false, message: 'Email could not be sent', error: err.message });
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Email could not be sent. Please check SMTP settings.', 
+                error: err.message,
+                code: err.code
+            });
         }
     } catch (err) {
         res.status(400).json({ success: false, message: err.message });
@@ -235,11 +241,17 @@ exports.forgotPassword = async (req, res) => {
                 message: 'OTP sent to email'
             });
         } catch (err) {
-            console.error('Email Error:', err);
+            console.error('Email Error Stack:', err.stack);
+            console.error('Email Error Message:', err.message);
             user.resetPasswordToken = undefined;
             user.resetPasswordExpire = undefined;
             await user.save();
-            return res.status(500).json({ success: false, message: 'Email could not be sent', error: err.message });
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Email could not be sent. Please check SMTP settings.', 
+                error: err.message,
+                code: err.code
+            });
         }
     } catch (err) {
         res.status(400).json({ success: false, message: err.message });

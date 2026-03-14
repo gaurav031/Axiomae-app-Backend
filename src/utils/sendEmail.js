@@ -2,18 +2,14 @@ const nodemailer = require('nodemailer');
 
 const sendEmail = async (options) => {
     const transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false, // STARTTLS
+        service: 'gmail',
         auth: {
             user: process.env.SMTP_EMAIL,
             pass: process.env.SMTP_PASSWORD,
         },
-        tls: {
-            // This is the key to bypass the 'self-signed certificate' error
-            rejectUnauthorized: false,
-            minVersion: 'TLSv1.2'
-        }
+        connectionTimeout: 10000, // 10 seconds
+        greetingTimeout: 10000,
+        socketTimeout: 10000,
     });
 
     const message = {

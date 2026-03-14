@@ -1,4 +1,13 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
+
+// basic check for critical env variables
+const requiredEnv = ['MONGODB_URI', 'JWT_SECRET', 'SMTP_EMAIL', 'SMTP_PASSWORD'];
+requiredEnv.forEach(env => {
+    if (!process.env[env]) {
+        console.warn(`WARNING: Environment variable ${env} is missing!`);
+    }
+});
 const http = require('http');
 const socketio = require('socket.io');
 const connectDB = require('./config/db');
