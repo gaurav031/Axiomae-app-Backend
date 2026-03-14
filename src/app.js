@@ -10,6 +10,9 @@ const hpp = require('hpp');
 
 const app = express();
 
+// Trust proxy if we're behind a reverse proxy (e.g. Heroku, Render, AWS ALB)
+app.set('trust proxy', 1);
+
 // Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
