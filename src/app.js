@@ -12,9 +12,23 @@ const app = express();
 
 // Body parser
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Set security headers
 app.use(helmet());
+
+// Fix for express-mongo-sanitize issue with strict req.query getter
+app.use((req, res, next) => {
+    if (req.query) {
+        Object.defineProperty(req, 'query', {
+            value: req.query,
+            writable: true,
+            configurable: true,
+            enumerable: true
+        });
+    }
+    next();
+});
 
 // Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
