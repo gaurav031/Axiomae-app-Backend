@@ -12,8 +12,7 @@ const http = require('http');
 const socketio = require('socket.io');
 const connectDB = require('./config/db');
 const app = require('./app');
-
-// Triggering restart 1
+const logger = require('./utils/logger');
 
 // Connect to database
 connectDB();
@@ -161,12 +160,15 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+    logger.info({ 
+        port: PORT, 
+        env: process.env.NODE_ENV || 'production' 
+    }, 'Server started successfully');
 });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
-    console.log(`Error: ${err.message}`);
+    logger.fatal({ err }, 'Unhandled Promise Rejection! Shutting down.');
     // Close server & exit process
     server.close(() => process.exit(1));
 });

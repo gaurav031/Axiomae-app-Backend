@@ -7,8 +7,16 @@ const compression = require('compression');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
+const pinoHttp = require('pino-http');
+const logger = require('./utils/logger');
 
 const app = express();
+
+// Use pino-http for request logging
+app.use(pinoHttp({
+    logger,
+    autoLogging: true,
+}));
 
 // Trust proxy if we're behind a reverse proxy (e.g. Heroku, Render, AWS ALB)
 app.set('trust proxy', 1);
@@ -67,9 +75,9 @@ app.use(cors({
     credentials: true
 }));
 
-// Dev logging middleware
+// Dev logging middleware (already handled by pino-http, but keeping structure if needed)
 if (process.env.NODE_ENV === 'development') {
-    app.use(morgan('dev'));
+    // legacy support or additional dev tools can go here
 }
 
 // Mount routers
@@ -84,8 +92,8 @@ app.use('/api/live-classes', require('./routes/liveClassRoutes'));
 
 // Error handler
 app.use((err, req, res, next) => {
-    // Log to console for dev
-    console.error(err.stack.red || err.stack);
+    // Log using pino
+    req.log.error({ err }, 'Unhandled error occurred');
 
     let error = { ...err };
     error.message = err.message;
