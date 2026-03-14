@@ -66,6 +66,7 @@ exports.sendRegistrationOTP = async (req, res) => {
             });
         }
     } catch (err) {
+        logger.error({ err, stack: err.stack, body: req.body }, 'Error in sendRegistrationOTP main catch block');
         res.status(400).json({ success: false, message: err.message });
     }
 };
@@ -266,6 +267,7 @@ exports.forgotPassword = async (req, res) => {
             });
         }
     } catch (err) {
+        logger.error({ err, stack: err.stack, body: req.body }, 'Error in forgotPassword main catch block');
         res.status(400).json({ success: false, message: err.message });
     }
 };

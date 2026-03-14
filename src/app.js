@@ -21,6 +21,16 @@ app.use(pinoHttp({
 // Trust proxy if we're behind a reverse proxy (e.g. Heroku, Render, AWS ALB)
 app.set('trust proxy', 1);
 
+// Diagnostic Logging Middleware - Log EVERY hit
+app.use((req, res, next) => {
+    logger.info({ 
+        method: req.method, 
+        url: req.url, 
+        headers: { host: req.headers.host, origin: req.headers.origin } 
+    }, 'Incoming Request Diagnoser');
+    next();
+});
+
 // Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -80,6 +90,12 @@ if (process.env.NODE_ENV === 'development') {
     // legacy support or additional dev tools can go here
 }
 
+// Root route
+app.get('/', (req, res) => res.send('Axiomae API is running...'));
+
+// Health check
+app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
+
 // Mount routers
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/home', require('./routes/homeRoutes'));
@@ -122,6 +138,19 @@ app.use((err, req, res, next) => {
         message: error.message || 'Server Error',
         // Only show stack in development
         stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
+});
+
+// Catch-all for 404s
+app.use((req, res) => {
+    logger.warn({ 
+        method: req.method, 
+        url: req.url,
+        ip: req.ip
+    }, 'Route not found (404)');
+    res.status(404).json({
+        success: false,
+        message: `Route ${req.method} ${req.url} not found on this server`
     });
 });
 

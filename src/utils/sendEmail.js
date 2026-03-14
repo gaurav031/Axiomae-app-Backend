@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const logger = require('./logger');
 
 const sendEmail = async (options) => {
     const transporter = nodemailer.createTransport({
@@ -7,7 +8,7 @@ const sendEmail = async (options) => {
             user: process.env.SMTP_EMAIL,
             pass: process.env.SMTP_PASSWORD,
         },
-        connectionTimeout: 10000, // 10 seconds
+        connectionTimeout: 10000,
         greetingTimeout: 10000,
         socketTimeout: 10000,
     });
@@ -19,9 +20,16 @@ const sendEmail = async (options) => {
         text: options.message,
     };
 
-    const info = await transporter.sendMail(message);
-
-    console.log('Message sent: %s', info.messageId);
+    logger.info({ email: options.email, subject: options.subject }, 'Attempting to send email via SMTP');
+    
+    try {
+        const info = await transporter.sendMail(message);
+        logger.info({ messageId: info.messageId, response: info.response }, 'Email sent successfully via SMTP');
+        return info;
+    } catch (err) {
+        logger.error({ err, email: options.email }, 'SMTP sendMail failed');
+        throw err;
+    }
 };
 
 module.exports = sendEmail;
